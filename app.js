@@ -25,6 +25,11 @@ app.get('/events', (req, res) => {
 
 app.use("/api/sessions", sessionRouter);
 
+
+
+const PORT = process.env.PORT || 8080;
+
+
 app.listen(8080, () => {
     console.log("Servidor anclado en el puerto 8080");
 });

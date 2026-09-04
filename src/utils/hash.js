@@ -6,3 +6,7 @@ export const createHash = async password => {
 }
 
 
+
+export const isValidPassword = (password, hashedPassword) => {
+  return  bcrypt.compareSync(password, hashedPassword)
+}
