@@ -29,7 +29,7 @@ export const register = async (req, res) => {
     } 
 
         const hashedPassword = createHash(password) 
-        const newUser = UserModel.create({first_name, last_name, email, password:hashedPassword})
+        const newUser = await UserModel.create({first_name, last_name, email, password:hashedPassword})
 
     res.status(201).json({
         status:"success",
@@ -60,7 +60,7 @@ export const login = async (req,res) =>{
         }
         const normalizedEmail = email.toLowerCase().trim()
 
-        const user = UserModel.findOne({
+        const user = await UserModel.findOne({
             email: normalizedEmail
         })
 
@@ -74,20 +74,20 @@ export const login = async (req,res) =>{
         const validPassword = await isValidPassword(password, user.password)
 
         if(!validPassword){
-            return res.tatus(401).json({
+            return res.status(401).json({
                 status: "error",
                 message: "Credenciales inválidas"
             })
         }
         const tokenUser = {
-            id: user_id,
+            id: user.id,
             email: user.email,
             role: user.role
         }
 
         const token = generateToken(tokenUser)
             
-        res.cookie("nuestra_cookie", token , {httpOnly:true, maxAge:60*60*1000})
+        res.cookie("currentUser", token , {httpOnly:true, maxAge:60*60*1000})
 
         res.status(200).json({
             status: "success",

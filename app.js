@@ -1,5 +1,7 @@
 import express from 'express';
 import 'dotenv/config';
+import cookieParser from 'cookie-parser';
+
 import { connectDB } from './src/config/database.js';
 import sessionRouter from "./src/routes/sessions.router.js";
 
@@ -25,7 +27,7 @@ app.get('/events', (req, res) => {
 
 app.use("/api/sessions", sessionRouter);
 
-
+app.use(cookieParser())
 
 const PORT = process.env.PORT || 8080;
 
