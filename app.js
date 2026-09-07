@@ -29,6 +29,11 @@ app.use("/api/sessions", sessionRouter);
 
 app.use(cookieParser())
 
+
+app.use(
+  passport.initialize()
+);
+
 const PORT = process.env.PORT || 8080;
 
 

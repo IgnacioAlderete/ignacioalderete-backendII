@@ -2,6 +2,7 @@ import SessionService from "../services/session.services.js";
 import { UserModel } from "../models/model.user.js"
 import {generateToken} from "../utils/jwt.js"
 import {createHash, isValidPassword} from "../utils/hash.js"
+import { UserDTO } from "../dto/user.dto.js";
 
 const sessionService = new SessionService();
 
@@ -87,7 +88,14 @@ export const login = async (req,res) =>{
 
         const token = generateToken(tokenUser)
             
-        res.cookie("currentUser", token , {httpOnly:true, maxAge:60*60*1000})
+        res.cookie("currentUser", token , {httpOnly:true
+            
+            
+            ,secure: process.env.NODE_ENV === "production"
+            
+            ,sameSite:"lax",
+            maxAge:
+            60*60*1000})
 
         res.status(200).json({
             status: "success",
@@ -107,15 +115,13 @@ export const login = async (req,res) =>{
 
 export const current = async (req, res) =>{
     try{
-        const {id, email, role} = req.user;
+        const user = req.user;
     
-        res.json({
+        const userDTO = new UserDTO(user)
+        
+        res.res.status(200).json({
             status: "success",
-            user :{
-                id,
-                email,
-                role
-            }
+            payload: userDTO
         })
     
     } catch (error){
@@ -130,7 +136,7 @@ export const logout = async (req, res) =>{
 
     res.clearCookie("currentUser")
 
-    res.json({
+    return res.status(200).json({
         status: "success",
         message: "Logout exitoso"
     })
