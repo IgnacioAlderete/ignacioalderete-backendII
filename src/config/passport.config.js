@@ -1,4 +1,4 @@
-import usersDao from "../dao/users.dao";
+import UserDao from "../dao/users.dao";
 import passport from passport;
 
 import {
@@ -103,7 +103,7 @@ passport.use(
             try {
                 const normalizedEmail = email.trim().toLowerCase();
             
-                const user = await usersDao.getUserByEmail(normalizedEmail);
+                const user = await UserDao.getUserByEmail(normalizedEmail);
             
             if(!user){
 
@@ -175,7 +175,7 @@ passport.use(
       try {
 
         const user =
-          await userDAO.getUserById(
+          await UserDAO.getUserById(
             payload.id
           );
 

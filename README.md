@@ -1,25 +1,62 @@
--Se instalo las dependencias (express, dotenv, express, nodemon).
+La matriz debe mantenerse actualizada de acuerdo con los permisos implementados en los middlewares y las rutas de la aplicación.
 
--Se creo las carpetas correspondientes.
+Rutas de sesiones
+Registro
 
--"app.js" es el principal conductor para la API.
+POST /api/sessions/register
 
--Se cree .env.example para el puerto y URL sobre mongoDB.
+Permite registrar un nuevo usuario.
 
--gitignore para que en el repositorio se ignore el node_modules y env.
+Acceso: público.
 
--Se inicia el servidor con "npm run dev" ( El servidor quedará disponible en:
+Login
 
-http://localhost:8080)
+POST /api/sessions/login
 
--Tecnologías utilizadas
-Node.js
-Express
-MongoDB
-Mongoose
-Dotenv
-Nodemon
+Permite iniciar sesión y generar la sesión autenticada mediante JWT.
 
+Acceso: público.
 
--Carpetas que estarán vacias por el momento: Services, Repositories y DAO.
+Sesión actual
 
+GET /api/sessions/current
+
+Ruta protegida. Verifica la cookie con el JWT y devuelve los datos básicos del usuario autenticado:
+
+{
+  "id": "...",
+  "email": "usuario@email.com",
+  "role": "user"
+}
+
+No se devuelve la contraseña del usuario.
+
+Acceso: usuarios autenticados.
+
+Logout
+
+POST /api/sessions/logout
+
+Cierra la sesión eliminando/inutilizando la cookie de autenticación.
+
+Acceso: usuarios autenticados.
+
+Las rutas que requieren autenticación utilizan un middleware auth.
+
+El middleware:
+
+Obtiene el JWT desde la cookie.
+Verifica que el token sea válido y no esté expirado.
+Obtiene la información del usuario.
+Guarda el payload en req.user.
+Permite continuar con la ejecución de la ruta.
+
+Si el usuario no tiene una sesión válida, la solicitud es rechazada.
+
+Las rutas que además requieren un rol específico utilizan un middleware de autorización.
+
+Por ejemplo:
+
+auth → verifica que exista una sesión
+role → verifica que el usuario tenga el permiso necesario
+controller → ejecuta la operación
