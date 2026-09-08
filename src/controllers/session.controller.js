@@ -1,21 +1,30 @@
-import SessionService from "../services/session.services.js";
+import AuthService from "../services/auth.services.js";
 import { UserModel } from "../models/model.user.js"
 import {generateToken} from "../utils/jwt.js"
 import {createHash, isValidPassword} from "../utils/hash.js"
 import { UserDTO } from "../dto/user.dto.js";
 
-const sessionService = new SessionService();
+const authService = new AuthService();
 
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
+  try {
+    const user = await authService.register(req.body);
 
-
-    const {first_name, last_name, email, password} = req.body
-    if(!first_name || !last_name || !email || !password){
-        return res.status(400).json({
-            status: "error",
-            message: "Todos los campos son obligatorios"
-        })
-    }
+    res.status(201).json({
+      status: "success",
+      message: "Usuario registrado",
+      data: {
+        id: user._id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
     const exists = await UserModel.findOne({email})
     if(exists) {
@@ -46,7 +55,7 @@ export const register = async (req, res) => {
 
 
 
-    };
+    
 
 export const login = async (req,res) =>{
     try {

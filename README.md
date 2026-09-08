@@ -1,62 +1,161 @@
-La matriz debe mantenerse actualizada de acuerdo con los permisos implementados en los middlewares y las rutas de la aplicación.
+## 📅 Eventos
 
-Rutas de sesiones
-Registro
+La entidad `Event` permite administrar los eventos de la aplicación mediante un CRUD, aplicando autenticación, autorización por roles y reglas de negocio.
 
-POST /api/sessions/register
+### Rutas de eventos
 
-Permite registrar un nuevo usuario.
+| Método   | Ruta               | Descripción              | Acceso                            |
+| -------- | ------------------ | ------------------------ | --------------------------------- |
+| `GET`    | `/api/events`      | Lista eventos            | Público / autenticado             |
+| `GET`    | `/api/events/:eid` | Obtiene un evento por ID | Público / autenticado             |
+| `POST`   | `/api/events`      | Crea un evento           | `organizer`, `admin`              |
+| `PUT`    | `/api/events/:eid` | Modifica un evento       | Propietario `organizer` o `admin` |
+| `DELETE` | `/api/events/:eid` | Elimina un evento        | Propietario `organizer` o `admin` |
 
-Acceso: público.
+### Crear evento
 
-Login
+`POST /api/events`
 
-POST /api/sessions/login
+Requiere una sesión autenticada y uno de los siguientes roles:
 
-Permite iniciar sesión y generar la sesión autenticada mediante JWT.
+* `organizer`
+* `admin`
 
-Acceso: público.
+El usuario `user` recibe **403 Forbidden**.
 
-Sesión actual
+El evento debe contener los campos obligatorios definidos por el modelo.
 
-GET /api/sessions/current
+Ejemplo:
 
-Ruta protegida. Verifica la cookie con el JWT y devuelve los datos básicos del usuario autenticado:
-
+```json
 {
-  "id": "...",
-  "email": "usuario@email.com",
-  "role": "user"
+  "title": "Torneo de fútbol",
+  "description": "Torneo amateur",
+  "date": "2026-10-15",
+  "location": "Buenos Aires",
+  "capacity": 50
 }
+```
 
-No se devuelve la contraseña del usuario.
+### Obtener eventos
 
-Acceso: usuarios autenticados.
+`GET /api/events`
 
-Logout
+Permite obtener un listado de eventos.
 
-POST /api/sessions/logout
+La ruta admite filtros, paginación y ordenamiento mediante query parameters.
 
-Cierra la sesión eliminando/inutilizando la cookie de autenticación.
+Ejemplo:
 
-Acceso: usuarios autenticados.
+```text
+GET /api/events?category=deportes&page=1&limit=10&sort=asc
+```
 
-Las rutas que requieren autenticación utilizan un middleware auth.
+### Filtros disponibles
 
-El middleware:
+Los filtros dependen de los campos definidos en la entidad `Event`.
 
-Obtiene el JWT desde la cookie.
-Verifica que el token sea válido y no esté expirado.
-Obtiene la información del usuario.
-Guarda el payload en req.user.
-Permite continuar con la ejecución de la ruta.
+Ejemplos:
 
-Si el usuario no tiene una sesión válida, la solicitud es rechazada.
+| Parámetro  | Descripción          |
+| ---------- | -------------------- |
+| `category` | Filtra por categoría |
+| `location` | Filtra por ubicación |
+| `date`     | Filtra por fecha     |
+| `status`   | Filtra por estado    |
 
-Las rutas que además requieren un rol específico utilizan un middleware de autorización.
+Los filtros pueden combinarse en una misma solicitud.
 
-Por ejemplo:
+### Paginación
 
-auth → verifica que exista una sesión
-role → verifica que el usuario tenga el permiso necesario
-controller → ejecuta la operación
+El listado permite controlar la cantidad de resultados y la página solicitada:
+
+```text
+GET /api/events?page=1&limit=10
+```
+
+* `page`: número de página.
+* `limit`: cantidad de eventos por página.
+
+### Ordenamiento
+
+El listado permite ordenar los resultados mediante un parámetro de ordenamiento.
+
+Ejemplo:
+
+```text
+GET /api/events?sort=asc
+```
+
+o:
+
+```text
+GET /api/events?sort=desc
+```
+
+El criterio concreto de ordenamiento debe corresponder al campo definido por la implementación, por ejemplo fecha de creación o fecha del evento.
+
+---
+
+## 👥 Roles requeridos
+
+### `user`
+
+Puede consultar eventos, pero no puede crear, modificar ni eliminar eventos que requieran permisos de organización.
+
+Si intenta acceder a una ruta exclusiva de `organizer` o `admin`, recibe:
+
+```text
+403 Forbidden
+```
+
+### `organizer`
+
+Puede crear eventos y administrar aquellos recursos de los que sea propietario, según las reglas de negocio de la aplicación.
+
+### `admin`
+
+Tiene permisos administrativos y puede gestionar eventos independientemente de su propietario, según las reglas definidas por la aplicación.
+
+---
+
+## 📋 Reglas de negocio principales
+
+La creación y modificación de eventos debe respetar las validaciones definidas por la aplicación.
+
+Entre las reglas principales se encuentran:
+
+* El usuario debe estar autenticado para realizar operaciones protegidas.
+* Solo `organizer` y `admin` pueden crear eventos.
+* Un `organizer` solo puede modificar o eliminar eventos de los que sea propietario.
+* Un `admin` puede administrar los eventos sin restricciones de propiedad.
+* Los campos obligatorios del evento deben estar presentes.
+* Los valores recibidos deben respetar los tipos y restricciones definidos por el modelo.
+* Un evento debe tener una fecha válida.
+* No se deben permitir valores inválidos para campos que tengan restricciones específicas.
+* Las operaciones sobre eventos inexistentes deben devolver un error apropiado, por ejemplo `404 Not Found`.
+
+### Autenticación y autorización
+
+Las rutas protegidas siguen el siguiente flujo:
+
+```text
+Request
+   ↓
+JWT / Passport
+   ↓
+¿Sesión válida?
+   ├── NO → 401
+   ↓
+¿Rol permitido?
+   ├── NO → 403
+   ↓
+¿Es propietario?*
+   ├── NO → 403
+   ↓
+Controller
+   ↓
+Lógica de negocio
+```
+
+`*` La comprobación de propiedad aplica a las operaciones donde corresponda.
