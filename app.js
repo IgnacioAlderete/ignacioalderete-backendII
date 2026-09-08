@@ -9,6 +9,8 @@ import cookieParser from 'cookie-parser';
 import { connectDB } from './src/config/database.js';
 import sessionRouter from "./src/routes/sessions.router.js";
 import eventsRouter from "./src/routes/events.router.js";
+import ticketRouter from "./src/routes/tickets.router.js";
+
 
 const app = express();
 
@@ -38,6 +40,7 @@ app.get('/events', (req, res) => {
 
 app.use("/api/sessions", sessionRouter);
 app.use("/api/events", eventsRouter);
+app.use ("/api/tickets", ticketsRouter)
 
 
 app.use(cookieParser())
