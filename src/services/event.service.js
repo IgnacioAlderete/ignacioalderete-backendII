@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { eventDTO } from "../dto/event.dto.js";
 import { EventRepository } from "../repositories/event.repository.js";
 
 const VALID_STATUSES = ["draft", "published", "cancelled", "finished"];
@@ -66,17 +67,19 @@ export class EventService {
     this.validateCapacityAndPrice({ capacity, price });
     this.validateStatus(status);
 
-    return this.eventRepository.create({
-      title,
-      description,
-      category,
-      date: eventDate,
-      location,
-      capacity,
-      price,
-      status,
-      organizer: user._id
-    });
+    const event = await this.eventRepository.create({
+  title,
+  description,
+  category,
+  date: eventDate,
+  location,
+  capacity,
+  price,
+  status,
+  organizer: user._id
+});
+
+return eventDTO(event);
   }
 
   async getEventById(id) {
@@ -88,7 +91,7 @@ export class EventService {
       throw Object.assign(new Error("Evento no encontrado"), { status: 404 });
     }
 
-    return event;
+    return eventDTO(event);
   }
 
   async getEvents(query) {
@@ -159,11 +162,11 @@ export class EventService {
     ]);
 
     return {
-      data,
-      page: currentPage,
-      limit: currentLimit,
-      total,
-      totalPages: Math.ceil(total / currentLimit)
+       data: data.map(eventDTO),
+       page: currentPage,
+       limit: currentLimit,
+       total,
+       totalPages: Math.ceil(total / currentLimit)
     };
   }
 
@@ -231,8 +234,12 @@ export class EventService {
       throw businessError("No hay campos válidos para actualizar");
     }
 
-    return this.eventRepository.updateById(id, updateData);
-  }
+    const updatedEvent = await this.eventRepository.updateById(
+    id,
+    updateData
+);
+
+return eventDTO(updatedEvent);  }
 
   async changeStatus(id, status, user) {
     const event = await this.getEventById(id);
@@ -257,6 +264,10 @@ export class EventService {
       throw businessError(`El evento ya tiene status "${status}"`);
     }
 
-    return this.eventRepository.updateById(id, { status });
-  }
+  const updatedEvent = await this.eventRepository.updateById(
+  id,
+  { status }
+);
+
+return eventDTO(updatedEvent);  }
 }

@@ -9,7 +9,9 @@ import cookieParser from 'cookie-parser';
 import { connectDB } from './src/config/database.js';
 import sessionRouter from "./src/routes/sessions.router.js";
 import eventsRouter from "./src/routes/events.router.js";
-import ticketRouter from "./src/routes/tickets.router.js";
+import ticketsRouter from "./src/routes/tickets.router.js";
+import { errorMiddleware } from "./src/middlewares/error.middleware.js";
+
 
 
 const app = express();
@@ -81,3 +83,5 @@ const startServer = async () => {
 };
 
 startServer();
+
+app.use(errorMiddleware);

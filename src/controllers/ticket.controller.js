@@ -1,3 +1,7 @@
+import { ticketDTO } from "../dto/ticket.dto.js";
+
+
+
 export const createTicket = async(req,res) =>{
     try{
 
@@ -65,7 +69,7 @@ export const createTicket = async(req,res) =>{
 
         res.status(201).json({
             status: "success",
-            data: ticket
+            data: ticketDTO(ticket)
         })
 
     }catch (error){
@@ -84,9 +88,9 @@ export const getEventTickets = async (req, res) => {
     );
 
     res.json({
-      status: "success",
-      payload: tickets
-    });
+  status: "success",
+  data: tickets.map(ticketDTO)
+});
 
   } catch (error) {
     res.status(403).json({

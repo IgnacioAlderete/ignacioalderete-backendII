@@ -1,16 +1,18 @@
-import Event from "../models/model.event.js";
+import Event from "../models/event.model.js";
 
 export class EventDAO {
+
   async create(data) {
-    return Event.create(data);
+    return await Event.create(data);
   }
 
   async findById(id) {
-    return Event.findById(id).populate("organizer", "first_name last_name email role");
+    return await Event.findById(id)
+      .populate("organizer", "first_name last_name email role");
   }
 
   async updateById(id, data) {
-    return Event.findByIdAndUpdate(
+    return await Event.findByIdAndUpdate(
       id,
       data,
       {
@@ -21,7 +23,7 @@ export class EventDAO {
   }
 
   async findAll(filter, { skip, limit, sort }) {
-    return Event.find(filter)
+    return await Event.find(filter)
       .populate("organizer", "first_name last_name email role")
       .sort(sort)
       .skip(skip)
@@ -29,6 +31,6 @@ export class EventDAO {
   }
 
   async count(filter) {
-    return Event.countDocuments(filter);
+    return await Event.countDocuments(filter);
   }
 }
